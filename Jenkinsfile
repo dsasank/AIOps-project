@@ -1,6 +1,9 @@
 pipeline {
     agent any
-    
+    tools{
+        nodejs 'node'
+
+}
     environment {
         DOCKERHUB_CREDENTIALS = 'docker-hub-credentials'
         IMAGE_NAME = 'sasankpoiu/ecommerce-app'   // CHANGE sasankdevops to your dockerhub username
