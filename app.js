@@ -13,7 +13,7 @@ const logger = winston.createLogger({
 app.use(express.json());
 
 // Mock products
-const products = [{ id: 1, name: 'Product A', price: 10 }, { id: 2, name: 'Product B', price: 20 },{ id: 3, name: 'Product C', price: 30 }];
+const products = [{ id: 1, name: 'Product A', price: 10 }, { id: 2, name: 'Product B', price: 20 },{ id: 3, name: 'Product C', price: 30 }, { id: 3, name: 'Product D', price: 40 }];
 
 app.get('/products', (req, res) => {
   res.json(products);
