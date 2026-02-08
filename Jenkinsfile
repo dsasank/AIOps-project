@@ -20,6 +20,11 @@ pipeline {
 
         stage('Build & Test') {
             steps {
+                script {
+                    // This forces Jenkins to initialize the tool
+                    def nodeHome = tool name: 'node', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
+                    env.PATH = "${nodeHome}/bin:${env.PATH}"
+                }
                 echo "Installing dependencies & running tests..."
                 sh 'npm install'
                 sh 'npm test || echo "No tests yet - skipping"'
