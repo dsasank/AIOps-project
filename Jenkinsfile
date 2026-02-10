@@ -37,8 +37,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo "Building Docker image..."
-                sh "docker build -t $$   {IMAGE_NAME}:   $${GIT_COMMIT_SHORT} ."
-                sh "docker tag $$   {IMAGE_NAME}:   $${GIT_COMMIT_SHORT} ${IMAGE_NAME}:latest"
+                sh "docker build -t ${IMAGE_NAME}:${GIT_COMMIT_SHORT} ."
+                sh "docker tag ${IMAGE_NAME}:${GIT_COMMIT_SHORT} ${IMAGE_NAME}:latest"
             }
         }
         
@@ -47,7 +47,7 @@ pipeline {
                 echo "Pushing to Docker Hub..."
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh "echo \$PASS | docker login -u \$USER --password-stdin"
-                    sh "docker push $$   {IMAGE_NAME}:   $${GIT_COMMIT_SHORT}"
+                    sh "docker push ${IMAGE_NAME}:${GIT_COMMIT_SHORT}"
                     sh "docker push ${IMAGE_NAME}:latest"
                 }
                 echo "Image pushed successfully: ${IMAGE_NAME}:latest"
@@ -79,7 +79,7 @@ pipeline {
         
         stage('Cleanup') {
             steps {
-                sh "docker rmi $$   {IMAGE_NAME}:   $${GIT_COMMIT_SHORT} || true"
+                sh "docker rmi ${IMAGE_NAME}:${GIT_COMMIT_SHORT} || true"
                 sh "docker rmi ${IMAGE_NAME}:latest || true"
             }
         }
