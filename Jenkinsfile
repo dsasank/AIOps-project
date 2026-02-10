@@ -22,9 +22,8 @@ pipeline {
         stage('Build & Test') {
             steps {
                 script {
-                    // This forces Jenkins to initialize the tool
                     def nodeHome = tool name: 'node', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
-                    env.PATH = "${nodeHome}/bin:${env.PATH}"
+                    env.PATH = "$$   {nodeHome}/bin:   $${env.PATH}"
                 }
                 echo "Installing dependencies & running tests..."
                 sh 'npm install'
@@ -38,8 +37,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo "Building Docker image..."
-                sh "docker build -t ${IMAGE_NAME}:${GIT_COMMIT_SHORT} ."
-                sh "docker tag ${IMAGE_NAME}:${GIT_COMMIT_SHORT} ${IMAGE_NAME}:latest"
+                sh "docker build -t $$   {IMAGE_NAME}:   $${GIT_COMMIT_SHORT} ."
+                sh "docker tag $$   {IMAGE_NAME}:   $${GIT_COMMIT_SHORT} ${IMAGE_NAME}:latest"
             }
         }
         
@@ -48,7 +47,7 @@ pipeline {
                 echo "Pushing to Docker Hub..."
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh "echo \$PASS | docker login -u \$USER --password-stdin"
-                    sh "docker push ${IMAGE_NAME}:${GIT_COMMIT_SHORT}"
+                    sh "docker push $$   {IMAGE_NAME}:   $${GIT_COMMIT_SHORT}"
                     sh "docker push ${IMAGE_NAME}:latest"
                 }
                 echo "Image pushed successfully: ${IMAGE_NAME}:latest"
@@ -58,32 +57,20 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 echo "Deploying to Minikube..."
-                withCredentials([string(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG_CONTENT')]) {
+                withCredentials([file(credentialsId: 'minikube-kubeconfig-file', variable: 'KUBECONFIG_FILE')]) {
                     sh '''
-                    # Safer way to write the kubeconfig (avoids most quoting issues)
-                    printf '%s\\n' "$KUBECONFIG_CONTENT" > kubeconfig.yaml
-                    cat > kubeconfig.yaml <<'END_OF_KUBECONFIG'
-$KUBECONFIG_CONTENT
-END_OF_KUBECONFIG
-                    # Optional debug (uncomment if still failing)
-                    # echo "=== First few lines of kubeconfig.yaml ==="
-                    # head -n 8 kubeconfig.yaml || true
-                    # echo "=== Trying to validate ==="
-                    # python3 -c "import yaml; yaml.safe_load(open('kubeconfig.yaml'))" || echo "YAML invalid"
-                    
+                    cp "$KUBECONFIG_FILE" kubeconfig.yaml
                     export KUBECONFIG=$(pwd)/kubeconfig.yaml
                     
-                    # Basic check
-                    kubectl version --client || { echo "kubectl client check failed"; exit 1; }
+                    kubectl config view --minify || { echo "Invalid kubeconfig"; cat kubeconfig.yaml | head -n 15; exit 1; }
                     
-                    # Deploy
-                    kubectl apply -f k8s/deployment.yaml || { echo "Deployment apply failed"; exit 1; }
-                    kubectl apply -f k8s/service.yaml   || { echo "Service apply failed"; exit 1; }
+                    kubectl version --client
                     
-                    # Optional: show status
+                    kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
+                    
                     kubectl get pods -l app=ecommerce
                     
-                    # Cleanup sensitive file
                     rm -f kubeconfig.yaml
                     '''
                 }
@@ -92,7 +79,7 @@ END_OF_KUBECONFIG
         
         stage('Cleanup') {
             steps {
-                sh "docker rmi ${IMAGE_NAME}:${GIT_COMMIT_SHORT} || true"
+                sh "docker rmi $$   {IMAGE_NAME}:   $${GIT_COMMIT_SHORT} || true"
                 sh "docker rmi ${IMAGE_NAME}:latest || true"
             }
         }
