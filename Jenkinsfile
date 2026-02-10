@@ -62,7 +62,9 @@ pipeline {
                     sh '''
                     # Safer way to write the kubeconfig (avoids most quoting issues)
                     printf '%s\\n' "$KUBECONFIG_CONTENT" > kubeconfig.yaml
-                    
+                    cat > kubeconfig.yaml <<'END_OF_KUBECONFIG'
+$KUBECONFIG_CONTENT
+END_OF_KUBECONFIG
                     # Optional debug (uncomment if still failing)
                     # echo "=== First few lines of kubeconfig.yaml ==="
                     # head -n 8 kubeconfig.yaml || true
