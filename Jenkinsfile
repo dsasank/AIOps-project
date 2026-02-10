@@ -23,7 +23,7 @@ pipeline {
             steps {
                 script {
                     def nodeHome = tool name: 'node', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
-                    env.PATH = "$$   {nodeHome}/bin:   $${env.PATH}"
+                    env.PATH = "${nodeHome}/bin:${env.PATH}"
                 }
                 echo "Installing dependencies & running tests..."
                 sh 'npm install'
