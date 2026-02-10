@@ -53,6 +53,19 @@ pipeline {
                 echo "Image pushed successfully: ${IMAGE_NAME}:latest"
             }
         }
+        stage('Deploy to Kubernetes') {
+            steps {
+                echo "Deploying to Minikube..."
+                withCredentials([string(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG_CONTENT')]) {
+                    sh '''
+                    echo "$KUBECONFIG_CONTENT" > kubeconfig.yaml
+                    export KUBECONFIG=kubeconfig.yaml
+                    kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
+                    '''
+        }
+    }
+}
 
         stage('Cleanup') {
             steps {

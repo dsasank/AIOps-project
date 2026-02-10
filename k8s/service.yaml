@@ -9,4 +9,5 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 3500
+    nodePort: 30629 
   type: NodePort   # Exposes on minikube IP
